@@ -1,0 +1,2 @@
+# SOHT
+Systeemiohjelmoinnin harjoitustyö
