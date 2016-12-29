@@ -67,9 +67,25 @@ int main(void)
 			cmd = NULL;
 		}
 		
+
 		if (strcmp(args[0],"exit")==0) {
 			exit(0);
+
+
+		/*if first argument is "cd"*/
+		} else if (strcmp(args[0],"cd")==0) {
+
+			/*if no second argument for cd, goes to home directory*/
+			if(args[1]== NULL) {	   
+				chdir(getenv("HOME"));
+
+			/*error*/
+			}else if(chdir(args[1])!=0) {  
+				perror("cd");
+			}
+			continue;
 		}
+
 		
 		/* fork to run the command */
 		switch (pid = fork()) {
