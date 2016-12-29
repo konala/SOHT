@@ -25,21 +25,28 @@ int main(void)
 	char cwd[MAXLEN];
 	char user[MAXLEN];
 	char host[MAXLEN];
+	char home[MAXLEN] = "/home/";
 	
 	signal(SIGINT, sighandler);
 	signal(SIGALRM, SIG_IGN);
 	
+	/* Default home directory */
+	strcat(home, getenv("USER")); //Append username to the home path
+	setenv("HOME", home, 1); //Set the home environmental variable
+	chdir(getenv("HOME")); // Change starting directory according to home
+	//printf("USER: %s HOME: %s\n", getenv("USER"), home);
+	
 	while (1) {
 		
 		background = 0;
-		/* Set variables */
-		getcwd(cwd, sizeof(cwd));
+		
+		/* print the prompt */
+		getcwd(cwd, sizeof(cwd)); 
 		getlogin_r(user, sizeof(user));
 		gethostname(host, sizeof(host));
-		/* print the prompt */
 		printf("[SOHT] %s@%s:%s$ ", user, host, cwd);
 		/* set the timeout for alarm signal (autologout) */
-		alarm(LOGOUT);
+		//alarm(LOGOUT);
 		
 		/* read the users command */
 		if (fgets(line,MAXLEN,stdin) == NULL) {
@@ -69,7 +76,7 @@ int main(void)
 		if (strcmp(args[0],"exit")==0) {
 			exit(0);
 		}
-		
+
 		/* fork to run the command */
 		switch (pid = fork()) {
 			case -1:
