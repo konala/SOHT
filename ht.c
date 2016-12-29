@@ -28,6 +28,7 @@ int main(void)
 	char host[MAXLEN];
 	
 	signal(SIGINT, sighandler);
+	signal(SIGALRM, SIG_IGN);
 	
 	while (1) {
 		
