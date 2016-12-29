@@ -3,7 +3,8 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
-//gitkokkeilu
+#include <sys/wait.h>
+
 #define LOGOUT 15
 #define MAXNUM 40
 #define MAXLEN 160
