@@ -3,7 +3,8 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
-//gitkokkeilu
+#include <sys/wait.h>
+
 #define LOGOUT 15
 #define MAXNUM 40
 #define MAXLEN 160
@@ -73,10 +74,29 @@ int main(void)
 			cmd = NULL;
 		}
 		
+
 		if (strcmp(args[0],"exit")==0) {
 			exit(0);
+
+
+		/*if first argument is "cd"*/
+		} else if (strcmp(args[0],"cd")==0) {
+
+			/*if no second argument for cd, goes to home directory*/
+			if(args[1]== NULL) {	   
+				chdir(getenv("HOME"));
+
+			/*error*/
+			}else if(chdir(args[1])!=0) {  
+				perror("cd");
+			}
+			continue;
 		}
 
+<<<<<<< HEAD
+=======
+		
+>>>>>>> b3aca78b9accb3acd481b4322d6f73f5364195f6
 		/* fork to run the command */
 		switch (pid = fork()) {
 			case -1:
