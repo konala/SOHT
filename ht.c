@@ -93,10 +93,7 @@ int main(void)
 			continue;
 		}
 
-<<<<<<< HEAD
-=======
-		
->>>>>>> b3aca78b9accb3acd481b4322d6f73f5364195f6
+
 		/* fork to run the command */
 		switch (pid = fork()) {
 			case -1:
