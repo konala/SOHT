@@ -18,7 +18,7 @@ void sighandler(int sig)
 	return;
 }
 
-int function isPipe(char **args) 
+int isPipe(char **args) 
 {
 
 	int i =1;
