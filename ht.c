@@ -29,8 +29,10 @@ int isPipe(char **args)
 			return 2;
 		} else if(strcmp(args[i],"|")==0){
 			return 3;
-		} else {return 0;}
+		} else {printf("1\n");return 0;}
+		i++;
 	}
+	return 0;
 }
 
 int main(void)
@@ -107,29 +109,59 @@ int main(void)
 			}
 			continue;
 		}
+		int ispipe = isPipe(args); //checks if the case is pipe or redirection
+		
+		if(ispipe == 0) {//no pipe or redirection
+			/* fork to run the command */
+			switch (pid = fork()) {
+				case -1:
+					/* error */
+					perror("fork");
+					continue;
+				case 0:
+					/* child process */
+					execvp(args[0], args);
+					perror("execvp");
+					exit(1);
+				default:
+					/* parent (shell) */
+					if (!background) {
+						alarm(0);
+						//waitpid(pid, NULL, 0);
+						while (wait(NULL)!=pid)
+							printf("some other child process exited\n");
+					}
+					break;
+			}
+		} else if(ispipe ==1) {
 
+		} else if(ispipe == 2) {
 
-		/* fork to run the command */
-		switch (pid = fork()) {
-			case -1:
-				/* error */
-				perror("fork");
-				continue;
-			case 0:
-				/* child process */
-				execvp(args[0], args);
-				perror("execvp");
-				exit(1);
-			default:
-				/* parent (shell) */
-				if (!background) {
-					alarm(0);
-					//waitpid(pid, NULL, 0);
-					while (wait(NULL)!=pid)
-						printf("some other child process exited\n");
-				}
-				break;
+		} else if(ispipe == 3){
 		}
+
 	}
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
