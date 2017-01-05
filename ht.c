@@ -18,6 +18,23 @@ void sighandler(int sig)
 	return;
 }
 
+int isPipe(char **args) 
+{
+
+	int i =1;
+	while(args[i]!= NULL) {
+		if(strcmp(args[i],">")==0){
+			return 1;
+		} else if(strcmp(args[i],"<")==0){
+			return 2;
+		} else if(strcmp(args[i],"|")==0){
+			return 3;
+		} else {printf("1\n");return 0;}
+		i++;
+	}
+	return 0;
+}
+
 int main(void)
 {
 	char * cmd, line[MAXLEN], * args[MAXNUM];
@@ -92,6 +109,7 @@ int main(void)
 			}
 			continue;
 		}
+<<<<<<< HEAD
 
 
 		/* fork to run the command */
@@ -114,7 +132,61 @@ int main(void)
 						printf("some other child process exited\n");
 				}
 				break;
+=======
+		int ispipe = isPipe(args); //checks if the case is pipe or redirection
+		
+		if(ispipe == 0) {//no pipe or redirection
+			/* fork to run the command */
+			switch (pid = fork()) {
+				case -1:
+					/* error */
+					perror("fork");
+					continue;
+				case 0:
+					/* child process */
+					execvp(args[0], args);
+					perror("execvp");
+					exit(1);
+				default:
+					/* parent (shell) */
+					if (!background) {
+						alarm(0);
+						//waitpid(pid, NULL, 0);
+						while (wait(NULL)!=pid)
+							printf("some other child process exited\n");
+					}
+					break;
+			}
+		} else if(ispipe ==1) {
+
+		} else if(ispipe == 2) {
+
+		} else if(ispipe == 3){
+>>>>>>> 8bc7a7376f2cf4e15f063bd64bc1e31a3c77946b
 		}
+
 	}
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
