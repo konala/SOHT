@@ -18,6 +18,21 @@ void sighandler(int sig)
 	return;
 }
 
+int function isPipe(char **args) 
+{
+
+	int i =1;
+	while(args[i]!= NULL) {
+		if(strcmp(args[i],">")==0){
+			return 1;
+		} else if(strcmp(args[i],"<")==0){
+			return 2;
+		} else if(strcmp(args[i],"|")==0){
+			return 3;
+		} else {return 0;}
+	}
+}
+
 int main(void)
 {
 	char * cmd, line[MAXLEN], * args[MAXNUM];
