@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#define LOGOUT 15
 #define MAXNUM 40
 #define MAXLEN 160
 
@@ -18,8 +17,7 @@ void sighandler(int sig)
 	return;
 }
 
-int isPipe(char **args) 
-{
+int isPipe(char **args) {
 
 	int i =1;
 	while(args[i]!= NULL) {
@@ -29,7 +27,7 @@ int isPipe(char **args)
 			return 2;
 		} else if(strcmp(args[i],"|")==0){
 			return 3;
-		} else {printf("1\n");return 0;}
+		}
 		i++;
 	}
 	return 0;
@@ -44,6 +42,7 @@ int main(void)
 	char user[MAXLEN];
 	char host[MAXLEN];
 	char home[MAXLEN] = "/home/";
+	int event; // 1 = >, 2 = <, 3 = pipe, 0 = default
 	
 	signal(SIGINT, sighandler);
 	signal(SIGALRM, SIG_IGN);
@@ -90,7 +89,7 @@ int main(void)
 			i++;
 			cmd = NULL;
 		}
-		
+		args[i] = NULL;
 
 		if (strcmp(args[0],"exit")==0) {
 			exit(0);
@@ -109,33 +108,87 @@ int main(void)
 			}
 			continue;
 		}
+		/* Pipes and redirection */
+		event = isPipe(args); // Check if arguments require pipes or redirection
+		/* Redirection > */
+		if (event == 1) {
+			printf(">\n");
+		/* Redirection < */
+		} else if (event == 2) {
+			printf("<\n");
+		/* Pipes */
+		} else if (event == 3) {
+			int k = 0;
+			char leftSide[MAXLEN];
+			char rightSide[MAXLEN];
+			char *rightArgs[MAXNUM]; // Right side of |
+			char *leftArgs[MAXNUM]; // Left side of |
+			
+			int fd[2];
+			int stdin; 
+			int stdout;
+			leftSide[0] = '\0';
+			rightSide[0] = '\0';
+
+			/* Initialize rightArgs */
+			while (strcmp(args[k], "|") != 0) {
+				strcat(leftSide, args[k]);
+				strcat(leftSide, " ");
+				leftArgs[k] = args[k];
+				k++;
+			}
+			leftArgs[k] = NULL;
+			k++;
+			int p = k;
+			printf("leftSide: %s\n", leftSide);
+
+			/* Initialize leftArgs */
+			while (args[k] != NULL) {
+				strcat(rightSide, args[k]);
+				strcat(rightSide, " ");
+				rightArgs[k-p] = args[k];
+				k++;
+			}
+			rightArgs[k-p] = NULL;
+			printf("rightSide: %s\n", rightSide);
+
+			/* Store original stdin and stdout */
+			stdin = dup(0);
+			stdout = dup(1);
+
+			pid_t pid1, pid2, pid3, waitid1, waitid2, waitid3;
+			int status1, status2, status3;
 
 
+			pid1 = fork();
+			if (pid1==0) {
+				pipe(fd);
+				pid2 = fork();
 
-		/* fork to run the command */
-		switch (pid = fork()) {
-			case -1:
-				/* error */
-				perror("fork");
-				continue;
-			case 0:
-				/* child process */
-				execvp(args[0], args);
-				perror("execvp");
-				exit(1);
-			default:
-				/* parent (shell) */
-				if (!background) {
-					alarm(0);
-					//waitpid(pid, NULL, 0);
-					while (wait(NULL)!=pid)
-						printf("some other child process exited\n");
+				if (pid2 == 0) {
+					dup2(fd[1],1);
+					close(fd[0]);
+					execvp(leftArgs[0], leftArgs);
+
+				} else {
+					waitid2 = waitpid(pid2, &status2, WIFSTOPPED(status1));
+					dup2(fd[0], 0);
+					close(fd[1]);
+					execvp(rightArgs[0], rightArgs);
 				}
-				break;
-}
-		int ispipe = isPipe(args); //checks if the case is pipe or redirection
+
+				dup2(stdin, 0);
+				close(stdin);
+				dup2(stdout, 1);
+				close(stdout);
+
+			} else {
+				waitid1 = waitpid(pid1, &status1, WIFSTOPPED(status1));
+			}
+
+		} else {
+
 		
-		if(ispipe == 0) {//no pipe or redirection
 			/* fork to run the command */
 			switch (pid = fork()) {
 				case -1:
@@ -157,36 +210,8 @@ int main(void)
 					}
 					break;
 			}
-		} else if(ispipe ==1) {
-
-		} else if(ispipe == 2) {
-
-		} else if(ispipe == 3){
-
 		}
-
+		
 	}
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
