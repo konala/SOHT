@@ -35,8 +35,8 @@ int main(void)
 	strcat(home, getenv("USER")); //Append username to the home path
 	setenv("HOME", home, 1); //Set the home environmental variable
 	chdir(getenv("HOME")); // Change starting directory according to home
-	//printf("USER: %s HOME: %s\n", getenv("USER"), home);
 	
+	/* Main loop */
 	while (1) {
 		
 		background = 0;
@@ -93,10 +93,7 @@ int main(void)
 			continue;
 		}
 
-<<<<<<< HEAD
-=======
-		
->>>>>>> b3aca78b9accb3acd481b4322d6f73f5364195f6
+
 		/* fork to run the command */
 		switch (pid = fork()) {
 			case -1:
