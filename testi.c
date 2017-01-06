@@ -43,6 +43,13 @@ int main(void)
 	char host[MAXLEN];
 	char home[MAXLEN] = "/home/";
 	int event; // 1 = >, 2 = <, 3 = pipe, 0 = default
+
+	char leftSide[MAXLEN];
+	char rightSide[MAXLEN];
+	char *rightArgs[MAXNUM]; // Right side of |
+	char *leftArgs[MAXNUM]; // Left side of |
+	
+	int fd[2];
 	
 	signal(SIGINT, sighandler);
 	signal(SIGALRM, SIG_IGN);
@@ -119,14 +126,9 @@ int main(void)
 		/* Pipes */
 		} else if (event == 3) {
 			int k = 0;
-			char leftSide[MAXLEN];
-			char rightSide[MAXLEN];
-			char *rightArgs[MAXNUM]; // Right side of |
-			char *leftArgs[MAXNUM]; // Left side of |
-			
-			int fd[2];
 			int stdin; 
 			int stdout;
+	
 			leftSide[0] = '\0';
 			rightSide[0] = '\0';
 
