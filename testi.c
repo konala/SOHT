@@ -153,7 +153,10 @@ int main(void)
 			stdin = dup(0);
 			stdout = dup(1);
 			
-			int out = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP | S_IRGRP | S_IRUSR);
+			//create file named after argument after ">"
+			//parameters for write only mode, create if file dont exist etc.
+
+			int out = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP 				| S_IRGRP | S_IRUSR); 			
 			dup2(out,1);
 			close(out);
 			pid_t pid11;
@@ -171,13 +174,13 @@ int main(void)
 					dup2(stdout,1);
 					close(stdout);
 					perror("exec");
-printf("asdfads\n");
+
 				
 				}
 
 			} else {
 
-				waitpid(pid11, &stat, WIFSTOPPED(stat));
+				waitpid(pid11, &stat, 0);
 
 			}
 			dup2(stdout,1);
@@ -190,6 +193,72 @@ printf("asdfads\n");
 		/* Redirection < */
 		} else if (event == 2) {
 			printf("<\n");
+
+			leftSide[0] = '\0';
+			rightSide[0] = '\0';
+			int k = 0;
+			int stdin; 
+			int stdout;
+
+			/* Initialize rightArgs */
+			while (strcmp(args[k], "<") != 0) {
+				strcat(leftSide, args[k]);
+				strcat(leftSide, " ");
+				leftArgs[k] = args[k];
+				k++;
+			}
+			leftArgs[k] = NULL;
+			k++;
+			int p = k;
+			printf("leftSide: %s\n", leftSide);
+
+			/* Initialize leftArgs */
+			while (args[k] != NULL) {
+				strcat(rightSide, args[k]);
+				//strcat(rightSide, " ");
+				rightArgs[k-p] = args[k];
+				k++;
+			}
+			rightArgs[k-p] = NULL;
+			printf("rightSide: %s\n", rightSide);
+
+			/* Store original stdin and stdout */
+			stdin = dup(0);
+			stdout = dup(1);
+
+			int in = open(rightSide,O_RDONLY);
+			dup2(in,0);
+			close(in);
+
+			pid_t pid22;
+			int stat22;
+			pid22 = fork();
+
+			if(pid22<0) {
+				perror("fork");
+				continue;
+
+			}else if(pid22 == 0){			
+				int ex;
+				ex = execvp(leftArgs[0],leftArgs);
+				if(ex== -1) {
+					dup2(stdin,0);
+					close(stdin);
+
+					perror("exec");
+				}
+			
+			}else {
+
+				waitpid(pid22,&stat22,0);
+			}
+
+
+			dup2(stdin, 0);
+			close(stdin);
+
+
+
 		/* Pipes */
 		} else if (event == 3) {
 			int k = 0;
