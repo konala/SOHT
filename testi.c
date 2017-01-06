@@ -229,22 +229,22 @@ printf("asdfads\n");
 			int status1, status2, status3;
 
 
-			pid1 = fork();
-			if (pid1==0) {
-				pipe(fd);
-				pid2 = fork();
+			pid1 = fork(); //Fork once
+			if (pid1==0) { // Child
+				pipe(fd); //Create pipe
+				pid2 = fork(); //Second fork
 
-				if (pid2 == 0) {
-					dup2(fd[1],1);
-					close(fd[0]);
+				if (pid2 == 0) { //Grandchild
+					dup2(fd[1],1); //Make STDOUT be the copy of fd[1], which is write end of the pipe we created
+					close(fd[0]); //Close the read end of the pipe
 					execvp(leftArgs[0], leftArgs);
 
-				} else {
-					waitid2 = waitpid(pid2, &status2, WIFSTOPPED(status1));
+				} /*else { this else not needed?*/
+					waitid2 = waitpid(pid2, &status2, 0);
 					dup2(fd[0], 0);
 					close(fd[1]);
 					execvp(rightArgs[0], rightArgs);
-				}
+				//}
 
 				dup2(stdin, 0);
 				close(stdin);
@@ -252,7 +252,7 @@ printf("asdfads\n");
 				close(stdout);
 
 			} else {
-				waitid1 = waitpid(pid1, &status1, WIFSTOPPED(status1));
+				waitid1 = waitpid(pid1, &status1, 0);
 			}
 			
 
