@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #define MAXNUM 40
 #define MAXLEN 160
@@ -120,6 +121,72 @@ int main(void)
 		/* Redirection > */
 		if (event == 1) {
 			printf(">\n");
+			leftSide[0] = '\0';
+			rightSide[0] = '\0';
+			int k = 0;
+			int stdin; 
+			int stdout;
+
+			/* Initialize rightArgs */
+			while (strcmp(args[k], ">") != 0) {
+				strcat(leftSide, args[k]);
+				strcat(leftSide, " ");
+				leftArgs[k] = args[k];
+				k++;
+			}
+			leftArgs[k] = NULL;
+			k++;
+			int p = k;
+			printf("leftSide: %s\n", leftSide);
+
+			/* Initialize leftArgs */
+			while (args[k] != NULL) {
+				strcat(rightSide, args[k]);
+				strcat(rightSide, " ");
+				rightArgs[k-p] = args[k];
+				k++;
+			}
+			rightArgs[k-p] = NULL;
+			printf("rightSide: %s\n", rightSide);
+
+			/* Store original stdin and stdout */
+			stdin = dup(0);
+			stdout = dup(1);
+			
+			int out = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP | S_IRGRP | S_IRUSR);
+			dup2(out,1);
+			close(out);
+			pid_t pid11;
+			pid11 = fork();
+			int stat;
+			if(pid11<0){
+
+				perror("fork");
+				continue;
+			} else if(pid11== 0) {
+				
+				int ex = execvp(leftArgs[0],leftArgs);
+
+				if(ex == -1) {
+					dup2(stdout,1);
+					close(stdout);
+					perror("exec");
+printf("asdfads\n");
+				
+				}
+
+			} else {
+
+				waitpid(pid11, &stat, WIFSTOPPED(stat));
+
+			}
+			dup2(stdout,1);
+			close(stdout);
+		
+
+			
+
+
 		/* Redirection < */
 		} else if (event == 2) {
 			printf("<\n");
@@ -187,6 +254,7 @@ int main(void)
 			} else {
 				waitid1 = waitpid(pid1, &status1, WIFSTOPPED(status1));
 			}
+			
 
 		} else {
 
