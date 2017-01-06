@@ -153,7 +153,10 @@ int main(void)
 			stdin = dup(0);
 			stdout = dup(1);
 			
-			int out = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP | S_IRGRP | S_IRUSR);
+			//create file named by argument after ">"
+			//parameters for write only mode, create if file dont exist etc.
+
+			int out = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP 				| S_IRGRP | S_IRUSR); 			
 			dup2(out,1);
 			close(out);
 			pid_t pid11;
@@ -171,7 +174,7 @@ int main(void)
 					dup2(stdout,1);
 					close(stdout);
 					perror("exec");
-printf("asdfads\n");
+
 				
 				}
 
