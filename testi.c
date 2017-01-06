@@ -142,7 +142,7 @@ int main(void)
 			/* Initialize leftArgs */
 			while (args[k] != NULL) {
 				strcat(rightSide, args[k]);
-				strcat(rightSide, " ");
+				//strcat(rightSide, " ");
 				rightArgs[k-p] = args[k];
 				k++;
 			}
@@ -166,7 +166,7 @@ int main(void)
 			} else if(pid11== 0) {
 				
 				int ex = execvp(leftArgs[0],leftArgs);
-
+			
 				if(ex == -1) {
 					dup2(stdout,1);
 					close(stdout);
