@@ -18,7 +18,8 @@ void sighandler(int sig)
 	return;
 }
 
-int isPipe(char **args) {
+// checks if case is redirection or pipe or just regular command
+int isPipe(char **args) { 
 
 	int i =1;
 	while(args[i]!= NULL) {
@@ -155,19 +156,22 @@ int main(void)
 			
 			//create file named after argument after ">"
 			//parameters for write only mode, create if file dont exist etc.
-
 			int out = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP 				| S_IRGRP | S_IRUSR); 			
+
+
 			dup2(out,1);
 			close(out);
+
+			//creating a fork
 			pid_t pid11;
 			pid11 = fork();
 			int stat;
 			if(pid11<0){
-
-				perror("fork");
+				perror("fork"); //forking failed
 				continue;
-			} else if(pid11== 0) {
-				
+
+			} else if(pid11== 0) { //child
+				//execute argument and redirect output to file.
 				int ex = execvp(leftArgs[0],leftArgs);
 			
 				if(ex == -1) {
@@ -183,6 +187,7 @@ int main(void)
 				waitpid(pid11, &stat, 0);
 
 			}
+			//redirect output to a file.
 			dup2(stdout,1);
 			close(stdout);
 		
@@ -226,6 +231,7 @@ int main(void)
 			stdin = dup(0);
 			stdout = dup(1);
 
+			//open file named after second argument in read only -mode
 			int in = open(rightSide,O_RDONLY);
 			dup2(in,0);
 			close(in);
@@ -234,14 +240,17 @@ int main(void)
 			int stat22;
 			pid22 = fork();
 
-			if(pid22<0) {
+			if(pid22<0) { //forking error
 				perror("fork");
 				continue;
 
-			}else if(pid22 == 0){			
+			}else if(pid22 == 0){	//child
+
+				//execute argument using file as a input.
 				int ex;
 				ex = execvp(leftArgs[0],leftArgs);
 				if(ex== -1) {
+
 					dup2(stdin,0);
 					close(stdin);
 
