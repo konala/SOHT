@@ -2,7 +2,7 @@
 * 
 * Tekijät:
 * Konsta Ala-Ilomäki, 0418514
-* Johannes Kohvakka, #######
+* Johannes Kohvakka, 0418569
 * 7.1.2017
 */
 
