@@ -25,6 +25,14 @@ int isPipe(char **args) {
 		if(strcmp(args[i],">")==0){
 			return 1;
 		} else if(strcmp(args[i],"<")==0){
+			int ctr = i+1;
+            while (args[ctr] != NULL) {
+                if (strcmp(args[ctr], ">") == 0) {
+                    printf("< >\n");
+                    return 4;
+                }
+                ctr++;
+            }
 			return 2;
 		} else if(strcmp(args[i],"|")==0){
 			return 3;
@@ -47,8 +55,9 @@ int main(void)
 
 	char leftSide[MAXLEN];
 	char rightSide[MAXLEN];
-	char *rightArgs[MAXNUM]; // Right side of |
-	char *leftArgs[MAXNUM]; // Left side of |
+	char *rightArgs[MAXNUM]; // Right side of |, < or >
+	char *leftArgs[MAXNUM]; // Left side of |, < or >
+	char *middleArgs[MAXNUM];
 	
 	int fd[2];
 	
@@ -124,8 +133,8 @@ int main(void)
 			leftSide[0] = '\0';
 			rightSide[0] = '\0';
 			int k = 0;
-			int stdin; 
-			int stdout;
+			int stdinDupl; 
+			int stdoutDupl;
 
 			/* Initialize rightArgs */
 			while (strcmp(args[k], ">") != 0) {
@@ -150,15 +159,15 @@ int main(void)
 			printf("rightSide: %s\n", rightSide);
 
 			/* Store original stdin and stdout */
-			stdin = dup(0);
-			stdout = dup(1);
+			stdinDupl = dup(0);
+			stdoutDupl = dup(1);
 			
 			//create file named after argument after ">"
 			//parameters for write only mode, create if file dont exist etc.
 
-			int out = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP 				| S_IRGRP | S_IRUSR); 			
-			dup2(out,1);
-			close(out);
+			int outputFd = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP 				| S_IRGRP | S_IRUSR); 			
+			dup2(outputFd,1);
+			close(outputFd);
 			pid_t pid11;
 			pid11 = fork();
 			int stat;
@@ -171,8 +180,8 @@ int main(void)
 				int ex = execvp(leftArgs[0],leftArgs);
 			
 				if(ex == -1) {
-					dup2(stdout,1);
-					close(stdout);
+					dup2(stdoutDupl,1);
+					close(stdoutDupl);
 					perror("exec");
 
 				
@@ -183,8 +192,8 @@ int main(void)
 				waitpid(pid11, &stat, 0);
 
 			}
-			dup2(stdout,1);
-			close(stdout);
+			dup2(stdoutDupl,1);
+			close(stdoutDupl);
 		
 
 			
@@ -197,8 +206,8 @@ int main(void)
 			leftSide[0] = '\0';
 			rightSide[0] = '\0';
 			int k = 0;
-			int stdin; 
-			int stdout;
+			int stdinDupl; 
+			int stdoutDupl;
 
 			/* Initialize rightArgs */
 			while (strcmp(args[k], "<") != 0) {
@@ -223,12 +232,12 @@ int main(void)
 			printf("rightSide: %s\n", rightSide);
 
 			/* Store original stdin and stdout */
-			stdin = dup(0);
-			stdout = dup(1);
+			stdinDupl = dup(0);
+			stdoutDupl = dup(1);
 
-			int in = open(rightSide,O_RDONLY);
-			dup2(in,0);
-			close(in);
+			int inputFd = open(rightSide,O_RDONLY);
+			dup2(inputFd,0);
+			close(inputFd);
 
 			pid_t pid22;
 			int stat22;
@@ -242,9 +251,8 @@ int main(void)
 				int ex;
 				ex = execvp(leftArgs[0],leftArgs);
 				if(ex== -1) {
-					dup2(stdin,0);
-					close(stdin);
-
+					dup2(stdinDupl,0);
+					close(stdinDupl);
 					perror("exec");
 				}
 			
@@ -254,16 +262,16 @@ int main(void)
 			}
 
 
-			dup2(stdin, 0);
-			close(stdin);
+			dup2(stdinDupl, 0);
+			close(stdinDupl);
 
 
 
 		/* Pipes */
 		} else if (event == 3) {
 			int k = 0;
-			int stdin; 
-			int stdout;
+			int stdinDupl; 
+			int stdoutDupl;
 	
 			leftSide[0] = '\0';
 			rightSide[0] = '\0';
@@ -291,8 +299,8 @@ int main(void)
 			printf("rightSide: %s\n", rightSide);
 
 			/* Store original stdin and stdout */
-			stdin = dup(0);
-			stdout = dup(1);
+			stdinDupl = dup(0);
+			stdoutDupl = dup(1);
 
 			pid_t pid1, pid2, pid3, waitid1, waitid2, waitid3;
 			int status1, status2, status3;
@@ -315,14 +323,95 @@ int main(void)
 					execvp(rightArgs[0], rightArgs);
 				//}
 
-				dup2(stdin, 0);
-				close(stdin);
-				dup2(stdout, 1);
-				close(stdout);
+				dup2(stdinDupl, 0);
+				close(stdinDupl);
+				dup2(stdoutDupl, 1);
+				close(stdoutDupl);
 
 			} else {
 				waitid1 = waitpid(pid1, &status1, 0);
 			}
+		/* Redirection < > */
+		} else if (event == 4) {
+			char middle[MAXLEN];
+			middle[0] = '\0';
+			leftSide[0] = '\0';
+			rightSide[0] = '\0';
+			int k = 0;
+			int stdinDupl; 
+			int stdoutDupl;
+
+			/* Initialize leftArgs */
+			while (strcmp(args[k], "<") != 0) {
+				strcat(leftSide, args[k]);
+				strcat(leftSide, " ");
+				leftArgs[k] = args[k];
+				k++;
+			}
+			leftArgs[k] = NULL;
+			k++;
+			int p = k;
+			printf("leftSide: %s\n", leftSide);
+			/* Initialize middle arguments */
+			while (strcmp(args[k], ">") != 0) {
+				strcat(middle, args[k]);
+				middleArgs[k-p] = args[k];
+				k++;
+			}
+			printf("middle: %s\n", middle);
+			middleArgs[k] = NULL;
+			k++;
+			p = k;
+			/* Initialize rightArgs */
+			while (args[k] != NULL) {
+				strcat(rightSide, args[k]);
+				//strcat(rightSide, " ");
+				rightArgs[k-p] = args[k];
+				k++;
+			}
+			rightArgs[k-p] = NULL;
+			printf("rightSide: %s\n", rightSide);
+
+			/* Store original stdin and stdout */
+			stdinDupl = dup(0);
+			stdoutDupl = dup(1);
+
+			int inputFd = open(middle,O_RDONLY);
+			int outputFd = open(rightSide, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IWGRP | S_IRGRP | S_IRUSR);
+			dup2(inputFd, 0);
+			close(inputFd);
+			dup2(outputFd, 1);
+			close(outputFd);
+
+			pid_t pid4;
+			int stat4;
+			pid4 = fork();
+
+			if(pid4<0) {
+				perror("fork");
+				continue;
+
+			} else if(pid4 == 0){			
+				int ex;
+				ex = execvp(leftArgs[0],leftArgs);
+				if(ex== -1) {
+					dup2(stdinDupl,0);
+					close(stdinDupl);
+
+					perror("exec");
+				}
+			
+			} else {
+
+				waitpid(pid4,&stat4,0);
+			}
+			dup2(stdinDupl, 0);
+			close(stdinDupl);
+			dup2(stdoutDupl, 1);
+			close(stdoutDupl);
+
+			
+			 			
 			
 
 		} else {
