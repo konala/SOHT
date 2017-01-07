@@ -1,3 +1,11 @@
+/* Systeemiohjelmoinnin harjoitustyö, Plan B
+* 
+* Tekijät:
+* Konsta Ala-Ilomäki, 0418514
+* Johannes Kohvakka, #######
+* 7.1.2017
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
